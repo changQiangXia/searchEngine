@@ -41,6 +41,8 @@ data/logs/*
 # Documentation
 docs/
 *.md
+!README.md
+!LICENSE
 
 # CI/CD
 .github/
