@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
+    libopenblas-dev \
     wget \
     git \
     && rm -rf /var/lib/apt/lists/*
@@ -41,11 +42,10 @@ RUN pip3 install --no-cache-dir \
     torchvision==0.15.2 \
     --index-url https://download.pytorch.org/whl/cu118
 
-# Install other dependencies
+# Install CPU-only dependencies first
 RUN pip3 install --no-cache-dir \
     transformers==4.35.0 \
     accelerate==0.24.0 \
-    faiss-gpu==1.7.4 \
     pillow==10.0.0 \
     numpy==1.24.0 \
     pydantic==2.0.0 \
@@ -60,6 +60,9 @@ RUN pip3 install --no-cache-dir \
     plotly==5.18.0 \
     scikit-learn==1.3.0 \
     opencv-python==4.8.0
+
+# Install faiss-gpu separately (may require additional system deps)
+RUN pip3 install --no-cache-dir faiss-gpu==1.7.4 || pip3 install --no-cache-dir faiss-cpu==1.7.4
 
 # Copy application code
 COPY src/ ./src/
