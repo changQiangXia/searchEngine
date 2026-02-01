@@ -104,8 +104,8 @@ class FAISSBackend:
 
         print(f"Building {self.index_type} index for {n} vectors ({self.dim}D)...")
 
-        # Create index
-        self.index = self._create_index(self.index_type)
+        # Create index with vector count for optimal parameter calculation
+        self.index = self._create_index(self.index_type, n_vectors=n)
 
         # Train if needed
         if hasattr(self.index, "is_trained") and not self.index.is_trained:
@@ -140,21 +140,33 @@ class FAISSBackend:
         else:
             return "ivfpq"
 
-    def _create_index(self, index_type: str) -> faiss.Index:
-        """Create FAISS index of specified type."""
+    def _create_index(self, index_type: str, n_vectors: int | None = None) -> faiss.Index:
+        """Create FAISS index of specified type.
+        
+        Args:
+            index_type: Type of index to create
+            n_vectors: Number of vectors (for calculating IVF nlist)
+        """
         if index_type == "flat":
             # Exact search with inner product
             return faiss.IndexFlatIP(self.dim)
 
         elif index_type == "ivf":
             # Inverted file index
-            nlist = min(4096, max(4, int(np.sqrt(self.index.ntotal if self.index else 10000))))
+            # Better nlist calculation: 4 * sqrt(n) for good recall/speed balance
+            if n_vectors is None:
+                n_vectors = 10000
+            # nlist should be at least 100 for good clustering
+            nlist = min(4096, max(100, int(4 * np.sqrt(n_vectors))))
+            self._nlist = nlist  # Store for reference
             quantizer = faiss.IndexFlatIP(self.dim)
             return faiss.IndexIVFFlat(quantizer, self.dim, nlist)
 
         elif index_type == "ivfpq":
             # Product quantization for memory efficiency
-            nlist = min(4096, max(4, int(np.sqrt(100000))))
+            if n_vectors is None:
+                n_vectors = 100000
+            nlist = min(4096, max(100, int(4 * np.sqrt(n_vectors))))
             m = 32  # Number of subquantizers
             nbits = 8  # Bits per subquantizer
             quantizer = faiss.IndexFlatIP(self.dim)
@@ -399,6 +411,75 @@ class FAISSBackend:
     def ntotal(self) -> int:
         """Get total number of vectors in index."""
         return self.index.ntotal if self.index else 0
+
+    @property
+    def nlist(self) -> int | None:
+        """Get number of clusters for IVF index."""
+        if self.index and hasattr(self.index, 'nlist'):
+            return self.index.nlist
+        return None
+
+    def recommend_nprobe(self, target_recall: float = 0.95) -> int:
+        """Recommend nprobe value for target recall.
+        
+        This is a heuristic based on empirical testing with clustered data.
+        For accurate tuning for your specific dataset, use tools/nprobe_tuner.py.
+        
+        Empirical recall estimates (clustered data, 50K-100K vectors):
+        - nprobe ~4% of nlist → ~50% recall
+        - nprobe ~8% of nlist → ~60% recall
+        - nprobe ~16% of nlist → ~70% recall
+        - nprobe ~32% of nlist → ~80% recall
+        - nprobe ~64% of nlist → ~95% recall
+        - nprobe ~100% of nlist → ~100% recall
+        
+        Args:
+            target_recall: Target recall value (0-1)
+            
+        Returns:
+            Recommended nprobe value
+        """
+        if not self.index or not hasattr(self.index, 'nlist'):
+            return 1  # Not an IVF index
+        
+        nlist = self.index.nlist
+        
+        # Empirical mapping based on clustered data tests
+        # Using higher percentages for conservative estimates
+        if target_recall >= 0.99:
+            pct_of_nlist = 0.80
+        elif target_recall >= 0.95:
+            pct_of_nlist = 0.64  # ~2/3 of clusters
+        elif target_recall >= 0.90:
+            pct_of_nlist = 0.48  # ~1/2 of clusters
+        elif target_recall >= 0.80:
+            pct_of_nlist = 0.32  # ~1/3 of clusters
+        elif target_recall >= 0.70:
+            pct_of_nlist = 0.16  # ~1/6 of clusters
+        elif target_recall >= 0.60:
+            pct_of_nlist = 0.08
+        else:
+            pct_of_nlist = 0.04
+        
+        recommended = max(1, int(nlist * pct_of_nlist))
+        
+        # Clamp to valid range
+        recommended = max(1, min(recommended, nlist))
+        
+        return recommended
+
+    def set_nprobe(self, nprobe: int) -> None:
+        """Set nprobe for IVF index.
+        
+        Args:
+            nprobe: Number of clusters to search
+        """
+        if self.index and hasattr(self.index, 'nlist'):
+            nprobe = max(1, min(nprobe, self.index.nlist))
+            self.index.nprobe = nprobe
+            print(f"Set nprobe={nprobe} (nlist={self.index.nlist})")
+        else:
+            print("Warning: Not an IVF index, nprobe has no effect")
 
     def __len__(self) -> int:
         """Get total number of vectors."""

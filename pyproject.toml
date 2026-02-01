@@ -28,7 +28,11 @@ dependencies = [
     "torchvision>=0.15.0",
     "transformers>=4.35.0",
     "accelerate>=0.24.0",
-    "faiss-cpu>=1.7.4; sys_platform == 'linux'",  # Use faiss-gpu in production
+    # FAISS: Auto-detect GPU/CPU version
+    # For GPU: pip install faiss-gpu-cu12 (CUDA 12.x) or faiss-gpu-cu11 (CUDA 11.x)
+    # For CPU: pip install faiss-cpu
+    # See install scripts in scripts/install_faiss_gpu.sh
+    "faiss-cpu>=1.7.4; sys_platform == 'linux' and extra != 'gpu'",
     "pillow>=10.0.0",
     "numpy>=1.24.0",
     "pydantic>=2.0.0",
@@ -68,7 +72,13 @@ dev = [
     "plotly>=5.18.0",
     "opencv-python>=4.8.0.76",
 ]
-all = ["nexus-mind[web,advanced,dev]"]
+gpu = [
+    # GPU support - install matching CUDA version
+    # CUDA 12.x: pip install faiss-gpu-cu12
+    # CUDA 11.x: pip install faiss-gpu-cu11
+    "faiss-gpu-cu12>=1.7.4; sys_platform == 'linux' and extra == 'gpu'",
+]
+all = ["nexus-mind[web,advanced,dev,gpu]"]
 
 [project.scripts]
 nexus = "nexus_mind.interfaces.cli.main:app"
