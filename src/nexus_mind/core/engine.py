@@ -69,7 +69,7 @@ class NexusEngine:
         if workspace_dir is None:
             from platformdirs import user_data_dir
 
-            base_dir = user_data_dir("nexus-mind", "nexusmind")
+            base_dir = user_data_dir("searchengine", "changqiangxia")
             workspace_dir = Path(base_dir) / "default"
 
         self.workspace_dir = Path(workspace_dir)

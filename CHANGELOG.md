@@ -36,4 +36,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Streaming batch processing for large datasets
 - Workspace management
 
-[0.1.0]: https://github.com/nexusmind/nexus-mind/releases/tag/v0.1.0
+[0.1.0]: https://github.com/changQiangXia/searchEngine/releases/tag/v0.1.0

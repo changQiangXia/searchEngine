@@ -4,11 +4,11 @@
 
 **下一代多模态语义搜索引擎**
 
-[![CI](https://github.com/nexusmind/nexus-mind/actions/workflows/ci.yml/badge.svg)](https://github.com/nexusmind/nexus-mind/actions)
-[![Docker](https://github.com/nexusmind/nexus-mind/actions/workflows/docker.yml/badge.svg)](https://github.com/nexusmind/nexus-mind/actions)
+[![CI](https://github.com/changQiangXia/searchEngine/actions/workflows/ci.yml/badge.svg)](https://github.com/changQiangXia/searchEngine/actions)
+[![Docker](https://github.com/changQiangXia/searchEngine/actions/workflows/docker.yml/badge.svg)](https://github.com/changQiangXia/searchEngine/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/nexus-mind.svg)](https://pypi.org/project/nexus-mind/)
+<!-- TODO: 发布到 PyPI 后更新此链接 [![PyPI](https://img.shields.io/pypi/v/nexus-mind.svg)](https://pypi.org/project/nexus-mind/) -->
 
 **[中文](#-中文文档) | [English](#-english-documentation)**
 
@@ -94,7 +94,7 @@ nexus status
 ```bash
 # 运行Web界面
 docker run --gpus all -p 8501:8501 \
-  ghcr.io/nexusmind/nexus-mind:latest
+  ghcr.io/changqiangxia/searchengine:latest
 
 # 访问 http://localhost:8501
 ```
@@ -102,7 +102,7 @@ docker run --gpus all -p 8501:8501 \
 ### 方式三：源码安装
 
 ```bash
-git clone https://github.com/nexusmind/nexus-mind.git
+git clone https://github.com/changQiangXia/searchEngine.git
 cd nexus-mind
 pip install -e ".[all]"
 ```
@@ -272,7 +272,7 @@ python tools/benchmark.py --image-dir ./photos
 version: '3.8'
 services:
   nexus-mind:
-    image: ghcr.io/nexusmind/nexus-mind:latest
+    image: ghcr.io/changqiangxia/searchengine:latest
     ports:
       - "8501:8501"
     volumes:
@@ -306,7 +306,7 @@ docker-compose up -d
 
 ```bash
 # 克隆仓库
-git clone https://github.com/nexusmind/nexus-mind.git
+git clone https://github.com/changQiangXia/searchEngine.git
 cd nexus-mind
 
 # 安装开发依赖
@@ -321,7 +321,7 @@ black src/
 mypy src/nexus_mind/
 
 # 构建Docker
- docker build -t nexus-mind:latest .
+ docker build -t searchengine:latest .
 ```
 
 ---
@@ -357,7 +357,7 @@ mypy src/nexus_mind/
 
 [MIT License](LICENSE) © 2024 NexusMind Team
 
-**[⬆ 回到顶部](#-nexmind)**
+**[⬆ 回到顶部](#-nexusmind)**
 
 </details>
 
@@ -441,7 +441,7 @@ nexus status
 ```bash
 # Run Web UI
 docker run --gpus all -p 8501:8501 \
-  ghcr.io/nexusmind/nexus-mind:latest
+  ghcr.io/changqiangxia/searchengine:latest
 
 # Access http://localhost:8501
 ```
@@ -449,7 +449,7 @@ docker run --gpus all -p 8501:8501 \
 ### Option 3: Source Install
 
 ```bash
-git clone https://github.com/nexusmind/nexus-mind.git
+git clone https://github.com/changQiangXia/searchEngine.git
 cd nexus-mind
 pip install -e ".[all]"
 ```
@@ -619,7 +619,7 @@ python tools/benchmark.py --image-dir ./photos
 version: '3.8'
 services:
   nexus-mind:
-    image: ghcr.io/nexusmind/nexus-mind:latest
+    image: ghcr.io/changqiangxia/searchengine:latest
     ports:
       - "8501:8501"
     volumes:
@@ -653,7 +653,7 @@ docker-compose up -d
 
 ```bash
 # Clone repository
-git clone https://github.com/nexusmind/nexus-mind.git
+git clone https://github.com/changQiangXia/searchEngine.git
 cd nexus-mind
 
 # Install dev dependencies
@@ -704,7 +704,7 @@ docker build -t nexus-mind:latest .
 
 [MIT License](LICENSE) © 2024 NexusMind Team
 
-**[⬆ Back to Top](#-nexmind)**
+**[⬆ Back to Top](#-nexusmind)**
 
 </details>
 

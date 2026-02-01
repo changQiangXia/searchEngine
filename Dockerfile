@@ -92,6 +92,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 CMD ["nexus", "status"]
 
 # Usage:
-# Build: docker build -t nexus-mind:latest .
-# Run CLI: docker run --gpus all -it nexus-mind:latest nexus --help
-# Run Web: docker run --gpus all -p 8501:8501 nexus-mind:latest streamlit run apps/web/app.py
+# Build: docker build -t searchengine:latest .
+# Run CLI: docker run --gpus all -it searchengine:latest nexus --help
+# Run Web: docker run --gpus all -p 8501:8501 searchengine:latest streamlit run apps/web/app.py

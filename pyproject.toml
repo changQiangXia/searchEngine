@@ -70,9 +70,9 @@ all = ["nexus-mind[web,advanced,dev]"]
 nexus = "nexus_mind.interfaces.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/nexusmind/nexus-mind"
-Repository = "https://github.com/nexusmind/nexus-mind"
-Documentation = "https://nexus-mind.readthedocs.io"
+Homepage = "https://github.com/changQiangXia/searchEngine"
+Repository = "https://github.com/changQiangXia/searchEngine"
+# Documentation = "https://changqiangxia.github.io/searchEngine"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nexus_mind"]

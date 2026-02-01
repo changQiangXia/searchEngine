@@ -257,7 +257,7 @@ def workspace(
     """Manage workspaces."""
     from platformdirs import user_data_dir
 
-    base_dir = Path(user_data_dir("nexus-mind", "nexusmind"))
+    base_dir = Path(user_data_dir("searchengine", "changqiangxia"))
 
     if list or (not create and not info):
         console.print("\n[bold]Workspaces:[/bold]\n")

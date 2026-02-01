@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: nexus-mind:latest
-    container_name: nexus-mind
+    image: searchengine:latest
+    container_name: searchengine
     
     # GPU support
     deploy:
@@ -27,8 +27,8 @@ services:
     # Volumes for persistence
     volumes:
       - ./data:/app/data
-      - nexus-cache:/app/data/cache
-      - nexus-logs:/app/logs
+      - searchengine-cache:/app/data/cache
+      - searchengine-logs:/app/logs
     
     # Ports
     ports:
@@ -54,7 +54,7 @@ services:
   # Optional: Redis for distributed caching
   redis:
     image: redis:7-alpine
-    container_name: nexus-redis
+    container_name: searchengine-redis
     ports:
       - "6379:6379"
     volumes:
@@ -72,4 +72,4 @@ volumes:
 # Start: docker-compose up -d
 # Stop: docker-compose down
 # Logs: docker-compose logs -f
-# Shell: docker-compose exec nexus-mind bash
+# Shell: docker-compose exec searchengine bash
