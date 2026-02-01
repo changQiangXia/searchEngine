@@ -415,8 +415,8 @@ class FAISSBackend:
     @property
     def nlist(self) -> int | None:
         """Get number of clusters for IVF index."""
-        if self.index and hasattr(self.index, 'nlist'):
-            return self.index.nlist
+        if self.index and hasattr(self.index, "nlist"):
+            return int(self.index.nlist)  # type: ignore[return-value]
         return None
 
     def recommend_nprobe(self, target_recall: float = 0.95) -> int:
@@ -439,10 +439,10 @@ class FAISSBackend:
         Returns:
             Recommended nprobe value
         """
-        if not self.index or not hasattr(self.index, 'nlist'):
+        if not self.index or not hasattr(self.index, "nlist"):
             return 1  # Not an IVF index
 
-        nlist = self.index.nlist
+        nlist: int = int(self.index.nlist)  # type: ignore[arg-type]
 
         # Empirical mapping based on clustered data tests
         # Using higher percentages for conservative estimates
@@ -474,7 +474,7 @@ class FAISSBackend:
         Args:
             nprobe: Number of clusters to search
         """
-        if self.index and hasattr(self.index, 'nlist'):
+        if self.index and hasattr(self.index, "nlist"):
             nprobe = max(1, min(nprobe, self.index.nlist))
             self.index.nprobe = nprobe
             print(f"Set nprobe={nprobe} (nlist={self.index.nlist})")
