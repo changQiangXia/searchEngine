@@ -153,7 +153,7 @@ class TieredCache:
     def _get_size(self, data: Any) -> int:
         """Get size of data in bytes."""
         if isinstance(data, np.ndarray):
-            return data.nbytes
+            return int(data.nbytes)
         elif isinstance(data, (str, bytes)):
             return len(data)
         else:
