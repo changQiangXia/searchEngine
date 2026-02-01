@@ -142,7 +142,7 @@ class FAISSBackend:
 
     def _create_index(self, index_type: str, n_vectors: int | None = None) -> faiss.Index:
         """Create FAISS index of specified type.
-        
+
         Args:
             index_type: Type of index to create
             n_vectors: Number of vectors (for calculating IVF nlist)
@@ -421,10 +421,10 @@ class FAISSBackend:
 
     def recommend_nprobe(self, target_recall: float = 0.95) -> int:
         """Recommend nprobe value for target recall.
-        
+
         This is a heuristic based on empirical testing with clustered data.
         For accurate tuning for your specific dataset, use tools/nprobe_tuner.py.
-        
+
         Empirical recall estimates (clustered data, 50K-100K vectors):
         - nprobe ~4% of nlist → ~50% recall
         - nprobe ~8% of nlist → ~60% recall
@@ -432,18 +432,18 @@ class FAISSBackend:
         - nprobe ~32% of nlist → ~80% recall
         - nprobe ~64% of nlist → ~95% recall
         - nprobe ~100% of nlist → ~100% recall
-        
+
         Args:
             target_recall: Target recall value (0-1)
-            
+
         Returns:
             Recommended nprobe value
         """
         if not self.index or not hasattr(self.index, 'nlist'):
             return 1  # Not an IVF index
-        
+
         nlist = self.index.nlist
-        
+
         # Empirical mapping based on clustered data tests
         # Using higher percentages for conservative estimates
         if target_recall >= 0.99:
@@ -460,17 +460,17 @@ class FAISSBackend:
             pct_of_nlist = 0.08
         else:
             pct_of_nlist = 0.04
-        
+
         recommended = max(1, int(nlist * pct_of_nlist))
-        
+
         # Clamp to valid range
         recommended = max(1, min(recommended, nlist))
-        
+
         return recommended
 
     def set_nprobe(self, nprobe: int) -> None:
         """Set nprobe for IVF index.
-        
+
         Args:
             nprobe: Number of clusters to search
         """
