@@ -55,9 +55,13 @@ data/temp/*
 !data/temp/.gitkeep
 
 # Models (downloaded)
-models/
+/models/
+/data/models/
 *.bin
 *.safetensors
+
+# Include source code models
+!src/**/models/
 
 # Results
 results/
