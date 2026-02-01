@@ -3,14 +3,14 @@
 from nexus_mind.application.use_cases.discovery.concept_interpolation import (
     ConceptInterpolator,
     InterpolationPoint,
-    slerp,
-    lerp,
     MultiConceptBlend,
+    lerp,
+    slerp,
 )
 from nexus_mind.application.use_cases.discovery.semantic_clustering import (
-    SemanticClustering,
     Cluster,
     ConceptTreeBuilder,
+    SemanticClustering,
 )
 
 __all__ = [
