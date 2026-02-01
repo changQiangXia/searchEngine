@@ -27,9 +27,7 @@ class TimeRange:
         """Check if timestamp is within range."""
         if self.start and timestamp < self.start:
             return False
-        if self.end and timestamp > self.end:
-            return False
-        return True
+        return not (self.end and timestamp > self.end)
 
     @classmethod
     def from_string(
@@ -323,7 +321,7 @@ class TemporalSearch:
         self,
         reference_query: str,
         target_query: str,
-        window_days: int = 7,
+        _window_days: int = 7,
     ) -> list[dict[str, Any]]:
         """Find time periods where both queries are relevant.
 

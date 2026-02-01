@@ -63,9 +63,9 @@ class Plugin(ABC):
         """
         pass
 
-    def shutdown(self) -> None:
-        """Cleanup when plugin is unloaded."""
-        pass
+    def shutdown(self) -> None:  # noqa: B027
+        """Cleanup when plugin is unloaded. Override if needed."""
+        ...
 
     def get_config_schema(self) -> dict[str, Any]:
         """Get configuration schema for validation."""
@@ -130,7 +130,7 @@ class ProcessorPlugin(Plugin):
         self, images: list[Any], metadatas: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Process multiple images (optional optimization)."""
-        return [self.process(img, meta) for img, meta in zip(images, metadatas)]
+        return [self.process(img, meta) for img, meta in zip(images, metadatas, strict=False)]
 
 
 class ExporterPlugin(Plugin):
@@ -310,7 +310,7 @@ class PluginLoader:
         spec.loader.exec_module(module)
 
         # Find plugin classes
-        for name, obj in inspect.getmembers(module):
+        for _name, obj in inspect.getmembers(module):
             if (
                 inspect.isclass(obj)
                 and issubclass(obj, Plugin)

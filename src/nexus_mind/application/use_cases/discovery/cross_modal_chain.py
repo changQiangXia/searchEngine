@@ -243,7 +243,7 @@ class CrossModalChain:
         self,
         image_node: ChainNode,
         step: int,
-        strategy: str,
+        _strategy: str,
     ) -> ChainNode | None:
         """Generate caption from image."""
         # If we have a caption generator, use it
@@ -367,12 +367,12 @@ class CrossModalChain:
             ],
             "links": [
                 {
-                    "from_step": l.from_node.step,
-                    "to_step": l.to_node.step,
-                    "transition": l.transition_type,
-                    "similarity": l.similarity,
+                    "from_step": link.from_node.step,
+                    "to_step": link.to_node.step,
+                    "transition": link.transition_type,
+                    "similarity": link.similarity,
                 }
-                for l in self.links
+                for link in self.links
             ],
             "length": len(self.nodes),
             "path": " → ".join([n.modality.name for n in self.nodes]),

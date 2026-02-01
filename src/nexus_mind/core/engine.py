@@ -18,9 +18,6 @@ from nexus_mind.application.use_cases.discovery.cross_modal_chain import (
     CrossModalChain,
     SemanticPathFinder,
 )
-from nexus_mind.application.use_cases.discovery.semantic_clustering import (
-    SemanticClustering,
-)
 from nexus_mind.infrastructure.compute.optimizer import (
     BatchConfig,
     DynamicBatcher,
@@ -159,10 +156,7 @@ class NexusEngine:
 
             if path.is_dir():
                 # Directory - glob for images
-                if recursive:
-                    pattern = "**/*"
-                else:
-                    pattern = "*"
+                pattern = "**/*" if recursive else "*"
 
                 for ext in extensions:
                     image_paths.extend(path.glob(f"{pattern}{ext}"))
@@ -233,7 +227,7 @@ class NexusEngine:
         self,
         query: str | Path | Image.Image,
         top_k: int = 10,
-        return_embeddings: bool = False,
+        _return_embeddings: bool = False,
     ) -> list[dict[str, Any]]:
         """Search index.
 
@@ -304,13 +298,9 @@ class NexusEngine:
         if len(candidates) <= top_k:
             return candidates
 
-        # Get embeddings for candidates
-        candidate_indices = [c["index"] for c in candidates]
-
         # For now, simplified MMR using index-based similarity
         # Full implementation would need actual embeddings
 
-        query_vec = self._encode_query(query)
         selected = []
         selected_indices = set()
 
@@ -327,12 +317,9 @@ class NexusEngine:
                 rel_score = cand["score"]
 
                 # Diversity score (max similarity to selected)
-                if selected:
-                    # Simplified: use inverse of average score similarity
-                    # In full implementation, would use actual embedding similarity
-                    div_score = 1.0 / (1 + len(selected))
-                else:
-                    div_score = 1.0
+                # Simplified: use inverse of average score similarity
+                # In full implementation, would use actual embedding similarity
+                div_score = 1.0 / (1 + len(selected)) if selected else 1.0
 
                 # MMR formula
                 mmr_score = lambda_param * rel_score + (1 - lambda_param) * div_score
@@ -430,9 +417,9 @@ class NexusEngine:
 
     def cluster_index(
         self,
-        method: str = "kmeans",
-        n_clusters: int | None = None,
-        min_cluster_size: int = 3,
+        _method: str = "kmeans",
+        _n_clusters: int | None = None,
+        _min_cluster_size: int = 3,
     ) -> list[dict[str, Any]]:
         """Cluster the index to discover semantic groups.
 
@@ -450,12 +437,6 @@ class NexusEngine:
         # Get all embeddings
         # Note: FAISS doesn't provide direct access, so we need to store separately
         # For now, use metadata to reconstruct (placeholder implementation)
-
-        clusterer = SemanticClustering(
-            method=method,
-            n_clusters=n_clusters,
-            min_cluster_size=min_cluster_size,
-        )
 
         # We need embeddings - this is a limitation of current FAISS backend
         # In practice, we should cache embeddings separately

@@ -188,6 +188,7 @@ class FAISSBackend:
                 f"Insufficient GPU memory for index ({estimated_memory/1e9:.2f}GB needed). "
                 "Using CPU index.",
                 ResourceWarning,
+                stacklevel=2,
             )
             self.use_gpu = False
             return
@@ -206,7 +207,7 @@ class FAISSBackend:
             print("✅ Index moved to GPU (FP16 mode)")
 
         except Exception as e:
-            warnings.warn(f"GPU transfer failed: {e}. Using CPU.", RuntimeWarning)
+            warnings.warn(f"GPU transfer failed: {e}. Using CPU.", RuntimeWarning, stacklevel=2)
             self.use_gpu = False
 
     def search(
@@ -261,7 +262,7 @@ class FAISSBackend:
         scores, indices = self.search(query, top_k)
 
         results = []
-        for score, idx in zip(scores[0], indices[0]):
+        for score, idx in zip(scores[0], indices[0], strict=False):
             if idx >= 0 and idx < len(self.metadata):
                 results.append(
                     {

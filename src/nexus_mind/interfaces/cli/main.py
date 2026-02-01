@@ -29,7 +29,7 @@ def get_engine(workspace: str | None = None) -> NexusEngine:
 
 @app.command()
 def index(
-    paths: list[Path] = typer.Argument(..., help="Image files or directories"),
+    paths: list[Path] = typer.Argument(..., help="Image files or directories"),  # noqa: B008
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     batch_size: int = typer.Option(32, "--batch-size", "-b", help="Processing batch size"),
     recursive: bool = typer.Option(
@@ -67,7 +67,7 @@ def index(
             )
         except Exception as e:
             console.print(f"[red]❌ Indexing failed: {e}[/red]")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
     # Display results
     console.print(f"\n[green]✅ Indexed {stats['count']} images[/green]")
@@ -100,7 +100,7 @@ def search(
             results = engine.search(query, top_k=top_k)
     except Exception as e:
         console.print(f"[red]❌ Search failed: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     # Display results
     console.print(f"\n[bold]Search: '{query}'[/bold]")
@@ -233,7 +233,7 @@ def negative(
         results = engine.negative_search(positive, negative, top_k=top_k, alpha=alpha)
     except Exception as e:
         console.print(f"[red]❌ Search failed: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     # Display results
     table = Table(box=box.ROUNDED)
@@ -336,12 +336,12 @@ def interpolate(
 
     except Exception as e:
         console.print(f"[red]❌ Interpolation failed: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
 @app.command()
 def blend(
-    concepts: list[str] = typer.Argument(
+    concepts: list[str] = typer.Argument(  # noqa: B008
         ..., help="Concepts with optional weights (e.g., 'vintage:0.8' 'neon:0.2')"
     ),
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
@@ -392,7 +392,7 @@ def blend(
 
     except Exception as e:
         console.print(f"[red]❌ Blend failed: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
 @app.command()
@@ -422,7 +422,7 @@ def discover(
 
     except Exception as e:
         console.print(f"[red]❌ Discovery failed: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
 if __name__ == "__main__":

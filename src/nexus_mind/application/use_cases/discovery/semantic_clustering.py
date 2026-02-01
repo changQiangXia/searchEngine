@@ -113,8 +113,8 @@ class SemanticClustering:
         """Cluster using HDBSCAN."""
         try:
             import hdbscan
-        except ImportError:
-            raise ImportError("hdbscan required. Install: pip install hdbscan")
+        except ImportError as err:
+            raise ImportError("hdbscan required. Install: pip install hdbscan") from err
 
         clusterer = hdbscan.HDBSCAN(
             min_cluster_size=self.min_cluster_size,

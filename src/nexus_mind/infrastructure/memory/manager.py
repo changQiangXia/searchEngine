@@ -115,7 +115,7 @@ class GPUMemoryManager:
     _instance: GPUMemoryManager | None = None
     _lock = threading.Lock()
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> GPUMemoryManager:
+    def __new__(cls, *_args: Any, **_kwargs: Any) -> GPUMemoryManager:
         """Ensure singleton pattern with thread safety."""
         if cls._instance is None:
             with cls._lock:
@@ -151,7 +151,9 @@ class GPUMemoryManager:
         else:
             self.total_memory = 0
             self.safe_limit = 0
-            warnings.warn("CUDA not available. Memory manager operating in CPU-only mode.")
+            warnings.warn(
+                "CUDA not available. Memory manager operating in CPU-only mode.", stacklevel=2
+            )
 
         # Model pool: name -> (model, persistent, cpu_copy)
         self._model_pool: dict[str, tuple] = {}
@@ -239,7 +241,7 @@ class GPUMemoryManager:
         if aggressive:
             with self._lock:
                 offloaded = []
-                for name, (model, persistent, _) in list(self._model_pool.items()):
+                for name, (_model, persistent, _) in list(self._model_pool.items()):
                     if not persistent:
                         self._offload_to_cpu(name)
                         offloaded.append(name)
@@ -247,6 +249,7 @@ class GPUMemoryManager:
                     warnings.warn(
                         f"Memory pressure high. Offloaded models: {offloaded}",
                         ResourceWarning,
+                        stacklevel=2,
                     )
 
         # Level 4: Emergency - clear everything possible
@@ -304,7 +307,7 @@ class GPUMemoryManager:
             # Remove from pool but keep reference to prevent GC
             self._model_pool[name] = (model, persistent, cpu_copy)
         except Exception as e:
-            warnings.warn(f"Failed to offload {name}: {e}")
+            warnings.warn(f"Failed to offload {name}: {e}", stacklevel=2)
 
     def load_safe(
         self,
@@ -362,6 +365,7 @@ class GPUMemoryManager:
         warnings.warn(
             f"Insufficient GPU memory for {model_name}. Loading on CPU.",
             ResourceWarning,
+            stacklevel=2,
         )
         model = loader_fn()
         if hasattr(model, "cpu"):
@@ -473,7 +477,9 @@ def memory_safe_context(
     except RuntimeError as e:
         if "out of memory" in str(e).lower() and fallback_to_cpu:
             manager.auto_clean(aggressive=aggressive_cleanup, emergency=True)
-            warnings.warn("OOM detected, performed emergency cleanup", ResourceWarning)
+            warnings.warn(
+                "OOM detected, performed emergency cleanup", ResourceWarning, stacklevel=2
+            )
             raise
         raise
 
@@ -523,7 +529,9 @@ def memory_safe(
 
                 elif fallback_strategy == "skip":
                     manager.auto_clean(aggressive=aggressive_cleanup)
-                    warnings.warn(f"Skipping {func.__name__} due to OOM", ResourceWarning)
+                    warnings.warn(
+                        f"Skipping {func.__name__} due to OOM", ResourceWarning, stacklevel=2
+                    )
                     return None
 
                 else:  # "raise"

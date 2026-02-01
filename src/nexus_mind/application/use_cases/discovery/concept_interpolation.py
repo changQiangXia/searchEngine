@@ -212,7 +212,7 @@ class ConceptInterpolator:
 
         selected = [candidates[0]]  # Always include start
 
-        for i, candidate in enumerate(candidates[1:-1], 1):
+        for _i, candidate in enumerate(candidates[1:-1], 1):
             # Calculate diversity of neighbors
             neighbors = candidate.neighbors
             if len(neighbors) < 2:
@@ -310,7 +310,7 @@ class MultiConceptBlend:
 
         # Weighted combination
         result_emb = np.zeros(embeddings.shape[1])
-        for (_, weight), emb in zip(normalized, embeddings):
+        for (_, weight), emb in zip(normalized, embeddings, strict=False):
             result_emb += weight * emb
 
         # Normalize

@@ -75,7 +75,6 @@ class DynamicBatcher:
 
         # Check current GPU memory
         allocated = torch.cuda.memory_allocated()
-        reserved = torch.cuda.memory_reserved()
         total = torch.cuda.get_device_properties(0).total_memory
 
         usage = allocated / total
@@ -286,13 +285,10 @@ class StreamingBatcher:
 
             # Process as they complete and submit new ones
             while futures:
-                done, _ = next(iter(futures.keys())), None
-
                 for future in list(futures.keys()):
                     if future.done():
                         result = future.result()
-                        for item in result:
-                            yield item
+                        yield from result
                         del futures[future]
 
                         # Submit new batch
@@ -314,13 +310,13 @@ class PerformanceMonitor:
 
     def __init__(self):
         """Initialize monitor."""
-        self.metrics: Dict[str, list[float]] = {
+        self.metrics: dict[str, list[float]] = {
             "throughput": [],
             "latency": [],
             "memory_used": [],
             "gpu_memory": [],
         }
-        self.start_times: Dict[str, float] = {}
+        self.start_times: dict[str, float] = {}
 
     def start_timer(self, name: str):
         """Start timing an operation."""
@@ -354,7 +350,7 @@ class PerformanceMonitor:
             gpu_mb = torch.cuda.memory_allocated() / 1024 / 1024
             self.metrics["gpu_memory"].append(gpu_mb)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get performance statistics."""
         stats = {}
 
