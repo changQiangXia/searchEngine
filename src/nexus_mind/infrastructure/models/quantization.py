@@ -201,7 +201,7 @@ class QuantizedCLIPWrapper:
         model = quantize_clip_model(model, self.config)
 
         # Move to device
-        model = cast(CLIPModel, model.to(self.config.device))  # type: ignore[arg-type]
+        model = cast(CLIPModel, model.to(self.config.device))  # type: ignore
         model.eval()
 
         self.model = model
