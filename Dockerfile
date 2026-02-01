@@ -59,7 +59,7 @@ RUN pip3 install --no-cache-dir \
     streamlit==1.28.0 \
     plotly==5.18.0 \
     scikit-learn==1.3.0 \
-    opencv-python==4.8.0
+    opencv-python==4.8.0.76
 
 # Install faiss-gpu separately (may require additional system deps)
 RUN pip3 install --no-cache-dir faiss-gpu==1.7.4 || pip3 install --no-cache-dir faiss-cpu==1.7.4
