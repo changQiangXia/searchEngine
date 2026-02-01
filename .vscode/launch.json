@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Nexus CLI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nexus_mind.interfaces.cli.main",
+            "args": ["status"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Nexus Web",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": ["run", "apps/web/app.py", "--server.port=8501"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        }
+    ]
+}

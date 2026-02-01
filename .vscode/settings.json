@@ -1,0 +1,13 @@
+{
+    "python.defaultInterpreterPath": "python3",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.linting.enabled": true,
+    "python.linting.ruffEnabled": true,
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["tests/unit", "-m", "not gpu"]
+}
