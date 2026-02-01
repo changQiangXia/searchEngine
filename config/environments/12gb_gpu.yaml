@@ -1,0 +1,114 @@
+# NexusMind Configuration for 12GB GPUs (RTX 3080ti, 4070, etc.)
+# This configuration prioritizes memory safety over raw performance
+
+memory_management:
+  enabled: true
+  safety_margin: 0.15  # Reserve 15% as safety buffer (~1.8GB on 12GB GPU)
+  auto_clean_threshold: 0.75  # Trigger cleanup at 75% usage
+  enable_monitoring: true  # Background memory monitoring
+  
+  # Circuit breaker levels
+  circuit_breaker:
+    warning: 60    # >60%: Log warning
+    critical: 80   # >80%: Aggressive cleanup
+    emergency: 90  # >90%: Emergency measures
+
+models:
+  clip:
+    name: "openai/clip-vit-large-patch14"
+    dtype: "float16"  # Half precision for memory efficiency
+    device: "auto"    # Auto-select GPU if available
+    persist: true     # Keep in GPU memory (core model)
+    batch_size: 32    # Default batch size
+    
+  llm:
+    enabled: false         # Disabled by default on 12GB
+    name: "liuhaotian/llava-v1.5-7b"
+    quantization: "int4"   # 4-bit quantization when enabled
+    dtype: "float16"
+    persist: false         # Load on demand
+    load_on_demand: true
+    max_memory: "4GB"      # Limit LLM memory
+    
+  sam:
+    enabled: false         # Disabled by default
+    name: "facebook/sam-vit-huge"
+    dtype: "float16"
+    persist: false
+    load_on_demand: true
+    auto_offload_after: 300  # Auto-unload after 5 minutes idle
+
+index:
+  backend: "faiss"
+  dim: 768  # CLIP-L dimension
+  
+  # Auto-select based on dataset size
+  auto_type: true
+  types:
+    flat:
+      max_vectors: 10000   # <10K: exact search
+      gpu: true
+    ivf:
+      max_vectors: 1000000  # 10K-1M: IVF
+      nlist_factor: 4       # nlist = sqrt(n) / 4
+      gpu: true
+    ivfpq:
+      max_vectors: 10000000  # >1M: compressed
+      nlist: 4096
+      m: 32                  # Subquantizers
+      nbits: 8               # Bits per code
+      gpu: false             # CPU for large indices
+  
+  # GPU memory limits
+  gpu_memory:
+    max_index_memory: "6GB"  # Max GPU memory for index
+    fallback_to_cpu: true    # Auto-fallback if exceeded
+
+workspace:
+  default_name: "default"
+  base_path: "~/.local/share/nexus-mind"  # Platform-specific data dir
+  
+  # Cache tiers
+  cache:
+    l1_gpu:
+      enabled: true
+      max_size: "1GB"
+      ttl: 3600  # 1 hour
+    l2_ssd:
+      enabled: true
+      path: "./data/cache/l2_ssd"
+      max_size: "10GB"
+    l3_disk:
+      enabled: true
+      path: "./data/cache/l3_disk"
+
+search:
+  defaults:
+    top_k: 10
+    nprobe: 64  # IVF clusters to search
+  
+  # MMR diversity parameters
+  diversity:
+    enabled: true
+    lambda: 0.5  # Balance between relevance and diversity
+    candidate_factor: 4  # Initial pool size = top_k * 4
+
+performance:
+  # Batch processing
+  batch_size:
+    images: 32
+    text: 64
+  
+  # Workers
+  num_workers: 4
+  prefetch_factor: 2
+  
+  # JIT compilation
+  compile_models: false  # Experimental, may not work on all GPUs
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./data/logs/nexus-mind.log"
+  max_size: "100MB"
+  backup_count: 5

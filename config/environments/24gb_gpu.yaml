@@ -1,0 +1,104 @@
+# NexusMind Configuration for 24GB+ GPUs (RTX 4090, A5000, etc.)
+# This configuration enables all features for high-end GPUs
+
+memory_management:
+  enabled: true
+  safety_margin: 0.10  # Smaller buffer for high-memory GPUs
+  auto_clean_threshold: 0.85
+  enable_monitoring: true
+  
+  circuit_breaker:
+    warning: 70
+    critical: 85
+    emergency: 95
+
+models:
+  clip:
+    name: "openai/clip-vit-large-patch14"
+    dtype: "float16"
+    device: "auto"
+    persist: true
+    batch_size: 64  # Larger batches
+    
+  llm:
+    enabled: true  # Enable LLM on 24GB
+    name: "liuhaotian/llava-v1.5-7b"
+    quantization: "int8"  # Can use int8 on 24GB
+    dtype: "float16"
+    persist: true  # Keep loaded
+    load_on_demand: false
+    max_memory: "8GB"
+    
+  sam:
+    enabled: true  # Enable SAM
+    name: "facebook/sam-vit-huge"
+    dtype: "float16"
+    persist: true
+    load_on_demand: false
+
+index:
+  backend: "faiss"
+  dim: 768
+  
+  auto_type: true
+  types:
+    flat:
+      max_vectors: 50000
+      gpu: true
+    ivf:
+      max_vectors: 5000000  # Can handle larger GPU indices
+      nlist_factor: 4
+      gpu: true
+    ivfpq:
+      max_vectors: 50000000
+      nlist: 8192
+      m: 64
+      nbits: 8
+      gpu: true  # Can keep on GPU
+  
+  gpu_memory:
+    max_index_memory: "12GB"
+    fallback_to_cpu: true
+
+workspace:
+  default_name: "default"
+  base_path: "~/.local/share/nexus-mind"
+  
+  cache:
+    l1_gpu:
+      enabled: true
+      max_size: "2GB"
+      ttl: 7200
+    l2_ssd:
+      enabled: true
+      path: "./data/cache/l2_ssd"
+      max_size: "50GB"
+    l3_disk:
+      enabled: true
+      path: "./data/cache/l3_disk"
+
+search:
+  defaults:
+    top_k: 10
+    nprobe: 128  # More clusters for better recall
+  
+  diversity:
+    enabled: true
+    lambda: 0.5
+    candidate_factor: 4
+
+performance:
+  batch_size:
+    images: 64
+    text: 128
+  
+  num_workers: 8
+  prefetch_factor: 4
+  compile_models: true  # Enable JIT compilation
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./data/logs/nexus-mind.log"
+  max_size: "100MB"
+  backup_count: 5

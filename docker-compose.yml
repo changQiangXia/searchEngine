@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  nexus-mind:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nexus-mind:latest
+    container_name: nexus-mind
+    
+    # GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    # Environment variables
+    environment:
+      - NEXUS_WORKSPACE_DIR=/app/data/workspaces
+      - NEXUS_CACHE_DIR=/app/data/cache
+      - NEXUS_LOG_LEVEL=INFO
+      - CUDA_VISIBLE_DEVICES=0
+    
+    # Volumes for persistence
+    volumes:
+      - ./data:/app/data
+      - nexus-cache:/app/data/cache
+      - nexus-logs:/app/logs
+    
+    # Ports
+    ports:
+      - "8501:8501"  # Streamlit Web UI
+    
+    # Working directory
+    working_dir: /app
+    
+    # Command (override in docker-compose.override.yml for development)
+    command: streamlit run apps/web/app.py --server.address=0.0.0.0
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import nexus_mind; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Optional: Redis for distributed caching
+  redis:
+    image: redis:7-alpine
+    container_name: nexus-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    profiles:
+      - distributed
+
+volumes:
+  nexus-cache:
+  nexus-logs:
+  redis-data:
+
+# Usage:
+# Start: docker-compose up -d
+# Stop: docker-compose down
+# Logs: docker-compose logs -f
+# Shell: docker-compose exec nexus-mind bash

@@ -1,0 +1,58 @@
+[
+  {
+    "id": 0,
+    "path": "test_data/blue_circle.jpg",
+    "name": "blue_circle.jpg",
+    "stem": "blue_circle",
+    "suffix": ".jpg"
+  },
+  {
+    "id": 1,
+    "path": "test_data/blue_square.jpg",
+    "name": "blue_square.jpg",
+    "stem": "blue_square",
+    "suffix": ".jpg"
+  },
+  {
+    "id": 2,
+    "path": "test_data/green_circle.jpg",
+    "name": "green_circle.jpg",
+    "stem": "green_circle",
+    "suffix": ".jpg"
+  },
+  {
+    "id": 3,
+    "path": "test_data/green_square.jpg",
+    "name": "green_square.jpg",
+    "stem": "green_square",
+    "suffix": ".jpg"
+  },
+  {
+    "id": 4,
+    "path": "test_data/red_circle.jpg",
+    "name": "red_circle.jpg",
+    "stem": "red_circle",
+    "suffix": ".jpg"
+  },
+  {
+    "id": 5,
+    "path": "test_data/red_square.jpg",
+    "name": "red_square.jpg",
+    "stem": "red_square",
+    "suffix": ".jpg"
+  },
+  {
+    "id": 6,
+    "path": "test_data/yellow_circle.jpg",
+    "name": "yellow_circle.jpg",
+    "stem": "yellow_circle",
+    "suffix": ".jpg"
+  },
+  {
+    "id": 7,
+    "path": "test_data/yellow_square.jpg",
+    "name": "yellow_square.jpg",
+    "stem": "yellow_square",
+    "suffix": ".jpg"
+  }
+]
