@@ -75,6 +75,7 @@ class TestGPUMemoryManager:
         manager.auto_clean(aggressive=False)
         manager.auto_clean(aggressive=True)
     
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
     def test_ensure_available(self):
         """Test memory availability check."""
         manager = GPUMemoryManager()
