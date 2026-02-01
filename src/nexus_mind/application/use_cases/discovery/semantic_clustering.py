@@ -9,9 +9,10 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 @dataclass
@@ -122,7 +123,7 @@ class SemanticClustering:
             metric="euclidean",
         )
         labels = clusterer.fit_predict(embeddings)
-        return labels
+        return cast(NDArray[np.int64], labels)
 
     def _cluster_kmeans(self, embeddings: np.ndarray) -> np.ndarray:
         """Cluster using KMeans."""
@@ -136,7 +137,7 @@ class SemanticClustering:
             n_init=10,
         )
         labels = kmeans.fit_predict(embeddings)
-        return labels
+        return cast(NDArray[np.int64], labels)
 
     def _cluster_agglomerative(self, embeddings: np.ndarray) -> np.ndarray:
         """Cluster using Agglomerative Clustering."""
@@ -150,7 +151,7 @@ class SemanticClustering:
             linkage="ward",
         )
         labels = clustering.fit_predict(embeddings)
-        return labels
+        return cast(NDArray[np.int64], labels)
 
     def _build_clusters(
         self,
@@ -189,7 +190,7 @@ class SemanticClustering:
             ]
 
             # Sort by similarity to center
-            member_list.sort(key=lambda x: x["similarity_to_center"], reverse=True)
+            member_list.sort(key=lambda x: cast(float, x["similarity_to_center"]), reverse=True)
 
             cluster = Cluster(
                 id=cluster_id,
@@ -317,7 +318,9 @@ class ConceptTreeBuilder:
         """
         clusterer = SemanticClustering(method="agglomerative")
 
-        def build_level(embs, metas, depth):
+        def build_level(
+            embs: np.ndarray, metas: list[dict[str, Any]], depth: int
+        ) -> dict[str, Any] | list[dict[str, Any]]:
             if depth >= max_depth or len(embs) < 10:
                 return {
                     "type": "leaf",

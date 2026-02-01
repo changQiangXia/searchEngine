@@ -6,6 +6,7 @@ Provides extensible architecture for custom processors, sources, and exporters.
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import inspect
 from abc import ABC, abstractmethod
 from collections.abc import Callable
@@ -30,9 +31,9 @@ class PluginInfo:
     version: str
     description: str
     author: str = ""
-    dependencies: list[str] = None
+    dependencies: list[str] | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.dependencies is None:
             self.dependencies = []
 
@@ -169,7 +170,7 @@ class SearchStrategyPlugin(Plugin):
         self,
         query: Any,
         index: Any,
-        **kwargs,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """Execute custom search.
 
@@ -190,13 +191,15 @@ class PluginRegistry:
     Singleton pattern for global plugin access.
     """
 
-    _instance = None
+    _instance: PluginRegistry | None = None
+    _plugins: dict[str, Plugin]
+    _hooks: dict[str, list[Callable]]
 
-    def __new__(cls):
+    def __new__(cls) -> PluginRegistry:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance._plugins: dict[str, Plugin] = {}
-            cls._instance._hooks: dict[str, list[Callable]] = {}
+            cls._instance._plugins = {}
+            cls._instance._hooks = {}
         return cls._instance
 
     def register(self, plugin: Plugin) -> bool:
@@ -254,7 +257,7 @@ class PluginRegistry:
             self._hooks[event] = []
         self._hooks[event].append(callback)
 
-    def execute_hooks(self, event: str, *args, **kwargs) -> list[Any]:
+    def execute_hooks(self, event: str, *args: Any, **kwargs: Any) -> list[Any]:
         """Execute all hooks for event."""
         results = []
         for hook in self._hooks.get(event, []):
@@ -306,6 +309,8 @@ class PluginLoader:
         """Load single plugin file."""
         # Dynamic import
         spec = importlib.util.spec_from_file_location(path.stem, path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load spec from {path}")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 

@@ -35,12 +35,12 @@ def index(
     recursive: bool = typer.Option(
         True, "--recursive/--no-recursive", help="Search directories recursively"
     ),
-):
+) -> None:
     """Index images for semantic search."""
     engine = get_engine(workspace)
 
     # Validate paths
-    valid_paths = []
+    valid_paths: list[str | Path] = []
     for path in paths:
         if path.exists():
             valid_paths.append(path)
@@ -83,7 +83,7 @@ def search(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     top_k: int = typer.Option(10, "--top-k", "-k", help="Number of results"),
     diverse: bool = typer.Option(False, "--diverse", "-d", help="Use MMR for diverse results"),
-):
+) -> None:
     """Search the index."""
     engine = get_engine(workspace)
 
@@ -133,7 +133,7 @@ def search(
 @app.command()
 def status(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
-):
+) -> None:
     """Show system and engine status."""
     import torch
 
@@ -219,7 +219,7 @@ def negative(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     top_k: int = typer.Option(10, "--top-k", "-k", help="Number of results"),
     alpha: float = typer.Option(0.7, "--alpha", "-a", help="Negative weight (0-1)"),
-):
+) -> None:
     """Negative search - find images matching positive but not negative."""
     engine = get_engine(workspace)
 
@@ -253,7 +253,7 @@ def workspace(
     list: bool = typer.Option(False, "--list", "-l", help="List workspaces"),
     create: str | None = typer.Option(None, "--create", "-c", help="Create new workspace"),
     info: str | None = typer.Option(None, "--info", "-i", help="Show workspace info"),
-):
+) -> None:
     """Manage workspaces."""
     from platformdirs import user_data_dir
 
@@ -314,7 +314,7 @@ def interpolate(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     steps: int = typer.Option(5, "--steps", "-s", help="Number of interpolation steps"),
     top_k: int = typer.Option(3, "--top-k", "-k", help="Results per step"),
-):
+) -> None:
     """Interpolate between two concepts to discover intermediate ideas."""
     engine = get_engine(workspace)
 
@@ -346,7 +346,7 @@ def blend(
     ),
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     top_k: int = typer.Option(5, "--top-k", "-k", help="Number of results"),
-):
+) -> None:
     """Blend multiple concepts together with weights."""
     engine = get_engine(workspace)
 
@@ -355,12 +355,12 @@ def blend(
         raise typer.Exit(1)
 
     # Parse concepts with weights
-    parsed = []
+    parsed: list[tuple[str, float]] = []
     for concept in concepts:
         if ":" in concept:
-            name, weight = concept.rsplit(":", 1)
+            name, weight_str = concept.rsplit(":", 1)
             try:
-                weight = float(weight)
+                weight = float(weight_str)
             except ValueError:
                 name = concept
                 weight = 1.0
@@ -399,7 +399,7 @@ def blend(
 def discover(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     method: str = typer.Option("kmeans", "--method", "-m", help="Clustering method"),
-):
+) -> None:
     """Discover semantic clusters in the index."""
     engine = get_engine(workspace)
 
@@ -410,7 +410,7 @@ def discover(
     console.print(f"\n[bold]Discovering semantic clusters ({method})...[/bold]\n")
 
     try:
-        clusters = engine.cluster_index(method=method)
+        clusters = engine.cluster_index(_method=method)
 
         if not clusters:
             console.print("[yellow]⚠️  Clustering requires embedding cache.[/yellow]")

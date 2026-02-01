@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import torch
@@ -80,8 +80,8 @@ class NexusEngine:
         # Initialize tiered cache
         self.cache = TieredCache(
             l1_size=int(1e9),  # 1GB for GPU memory
-            l2_path=self.workspace_dir / "cache" / "l2_ssd",
-            l3_path=self.workspace_dir / "cache" / "l3_disk",
+            l2_path=str(self.workspace_dir / "cache" / "l2_ssd"),
+            l3_path=str(self.workspace_dir / "cache" / "l3_disk"),
         )
 
         # Initialize performance optimization
@@ -150,7 +150,7 @@ class NexusEngine:
         start_time = time.time()
 
         # Collect all image paths
-        image_paths = []
+        image_paths: list[Path] = []
         for path in paths:
             path = Path(path)
 
@@ -177,7 +177,7 @@ class NexusEngine:
         # Extract embeddings
         print("Extracting embeddings...")
         embeddings = self.clip.encode_images(
-            image_paths,
+            list(image_paths),
             batch_size=batch_size,
             show_progress=True,
         )
@@ -301,8 +301,8 @@ class NexusEngine:
         # For now, simplified MMR using index-based similarity
         # Full implementation would need actual embeddings
 
-        selected = []
-        selected_indices = set()
+        selected: list[dict[str, Any]] = []
+        selected_indices: set[int] = set()
 
         while len(selected) < top_k and len(selected_indices) < len(candidates):
             best_mmr_score = -float("inf")
@@ -319,7 +319,7 @@ class NexusEngine:
                 # Diversity score (max similarity to selected)
                 # Simplified: use inverse of average score similarity
                 # In full implementation, would use actual embedding similarity
-                div_score = 1.0 / (1 + len(selected)) if selected else 1.0
+                div_score = 1.0 / (1.0 + float(len(selected))) if selected else 1.0
 
                 # MMR formula
                 mmr_score = lambda_param * rel_score + (1 - lambda_param) * div_score
@@ -367,6 +367,8 @@ class NexusEngine:
         query_vec = query_vec / np.linalg.norm(query_vec)
 
         # Search
+        if self.index is None:
+            raise RuntimeError("No index loaded")
         return self.index.search_with_metadata(query_vec, top_k)
 
     def interpolate_concepts(
@@ -391,9 +393,12 @@ class NexusEngine:
             raise RuntimeError("No index loaded")
 
         # Create interpolator
+        if self.index is None:
+            raise RuntimeError("No index loaded")
+        index = self.index
         interpolator = ConceptInterpolator(
             encoder=lambda texts: self.clip.encode_text(texts),
-            searcher=lambda emb, top_k: self.index.search_with_metadata(
+            searcher=lambda emb, top_k: index.search_with_metadata(
                 emb.reshape(1, -1) if emb.ndim == 1 else emb, top_k=top_k
             ),
             method="slerp",
@@ -461,9 +466,12 @@ class NexusEngine:
         if self.index is None:
             raise RuntimeError("No index loaded")
 
+        if self.index is None:
+            raise RuntimeError("No index loaded")
+        index = self.index
         blender = MultiConceptBlend(
             encoder=lambda texts: self.clip.encode_text(texts),
-            searcher=lambda emb, top_k: self.index.search_with_metadata(
+            searcher=lambda emb, top_k: index.search_with_metadata(
                 emb.reshape(1, -1) if emb.ndim == 1 else emb, top_k=top_k
             ),
         )
@@ -488,7 +496,7 @@ class NexusEngine:
         Returns:
             Chain result with nodes and links
         """
-        chain = CrossModalChain(self.engine)
+        chain = CrossModalChain(self)
 
         # Determine if start is image or text
         if Path(start).exists():
@@ -517,28 +525,31 @@ class NexusEngine:
 
     def get_stats(self) -> dict[str, Any]:
         """Get engine statistics."""
-        stats = {
+        stats: dict[str, Any] = {
             "workspace": str(self.workspace_dir),
             "clip_model": self.clip.model_name,
             "clip_device": self.clip.device,
         }
 
+        index_stats: dict[str, Any] | None
         if self.index:
-            stats["index"] = {
+            index_stats = {
                 "vectors": len(self.index),
                 "type": self.index.index_type,
                 "on_gpu": self.index.use_gpu,
             }
         else:
-            stats["index"] = None
+            index_stats = None
+        stats["index"] = index_stats
 
         # Memory stats
         mem_stats = self.memory_manager.get_stats()
-        stats["memory"] = {
+        memory_stats: dict[str, float] = {
             "gpu_used_gb": mem_stats.gpu_used / 1e9,
             "gpu_total_gb": mem_stats.gpu_total / 1e9,
             "gpu_usage_pct": mem_stats.gpu_usage_pct,
         }
+        stats["memory"] = memory_stats
 
         return stats
 
@@ -576,13 +587,18 @@ class NexusEngine:
             True if successful
         """
         # Find appropriate exporter plugin
+        from nexus_mind.plugins.base import ExporterPlugin
+
         exporters = self.plugin_registry.get_plugins_by_type(
             type(self.plugin_registry._plugins.get("json_exporter"))
         )
 
         for exporter in exporters:
-            if f".{format}" in exporter.supported_formats():
-                return exporter.export(results, output_path)
+            exporter = cast(ExporterPlugin, exporter)
+            supported = exporter.supported_formats()
+            if isinstance(supported, (list, tuple)) and f".{format}" in supported:
+                result: bool = exporter.export(results, output_path)
+                return result
 
         print(f"❌ No exporter found for format: {format}")
         return False

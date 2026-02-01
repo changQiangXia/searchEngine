@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 
 @dataclass
@@ -135,7 +135,7 @@ class TemporalSearch:
         results = self.engine.search(query, top_k=initial_k)
 
         if not time_range:
-            return results[:top_k]
+            return cast(list[dict[str, Any]], results[:top_k])
 
         # Filter by time
         filtered = []
@@ -264,7 +264,7 @@ class TemporalSearch:
         buckets = []
         current_start = timed_results[0][0]
         current_end = current_start + delta
-        current_items = []
+        current_items: list[dict[str, Any]] = []
 
         for ts, result in timed_results:
             if ts >= current_end:
@@ -365,6 +365,9 @@ class TemporalSearch:
                     )
 
         # Sort by total activity
-        overlap_periods.sort(key=lambda x: x["total"], reverse=True)
+        def sort_key(x: dict[str, Any]) -> Any:
+            return x["total"]
+
+        overlap_periods.sort(key=sort_key, reverse=True)
 
         return overlap_periods

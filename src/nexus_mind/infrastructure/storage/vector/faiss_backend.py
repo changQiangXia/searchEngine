@@ -183,7 +183,7 @@ class FAISSBackend:
             return
 
         # Check if we have enough memory
-        if not self.memory_manager.ensure_available(estimated_memory, aggressive_cleanup=True):
+        if not self.memory_manager.ensure_available(int(estimated_memory), aggressive_cleanup=True):
             warnings.warn(
                 f"Insufficient GPU memory for index ({estimated_memory/1e9:.2f}GB needed). "
                 "Using CPU index.",

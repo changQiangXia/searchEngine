@@ -18,7 +18,7 @@ class NSFWFilterProcessor(ProcessorPlugin):
     def initialize(self) -> bool:
         return True
 
-    def process(self, _image, metadata: dict[str, Any]) -> dict[str, Any]:
+    def process(self, _image: Any, metadata: dict[str, Any]) -> dict[str, Any]:
         """Check image for NSFW content."""
         metadata["nsfw_safe"] = True
         metadata["nsfw_score"] = 0.0

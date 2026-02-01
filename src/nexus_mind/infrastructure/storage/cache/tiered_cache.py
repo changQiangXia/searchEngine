@@ -45,7 +45,7 @@ class CacheEntry:
             return False
         return time.time() - self.created_at > self.ttl
 
-    def touch(self):
+    def touch(self) -> None:
         """Update access metadata."""
         self.accessed_at = time.time()
         self.access_count += 1
@@ -121,7 +121,7 @@ class TieredCache:
         except Exception:
             return {}
 
-    def _save_metadata(self, path: Path, metadata: dict[str, CacheEntry]):
+    def _save_metadata(self, path: Path, metadata: dict[str, CacheEntry]) -> None:
         """Save cache metadata to disk."""
         metadata_file = path / ".metadata.json"
 
@@ -337,7 +337,7 @@ class TieredCache:
 
         return None
 
-    def _promote_to_l1(self, key: str, data: Any, entry: CacheEntry):
+    def _promote_to_l1(self, key: str, data: Any, entry: CacheEntry) -> None:
         """Promote L2/L3 entry to L1."""
         new_entry = CacheEntry(
             key=key,
@@ -350,7 +350,7 @@ class TieredCache:
         )
         self._put_l1(key, data, new_entry)
 
-    def _promote_to_l2(self, key: str, data: Any, entry: CacheEntry):
+    def _promote_to_l2(self, key: str, data: Any, entry: CacheEntry) -> None:
         """Promote L3 entry to L2."""
         new_entry = CacheEntry(
             key=key,
@@ -363,7 +363,7 @@ class TieredCache:
         )
         self._put_l2(key, data, new_entry)
 
-    def _remove_l2(self, key: str):
+    def _remove_l2(self, key: str) -> None:
         """Remove entry from L2."""
         path = self.l2_path / f"{key}"
         for ext in [".npy", ".json"]:
@@ -374,7 +374,7 @@ class TieredCache:
             del self._l2_metadata[key]
             self._save_metadata(self.l2_path, self._l2_metadata)
 
-    def _remove_l3(self, key: str):
+    def _remove_l3(self, key: str) -> None:
         """Remove entry from L3."""
         path = self.l3_path / f"{key}"
         for ext in [".npy", ".json"]:
@@ -404,7 +404,7 @@ class TieredCache:
             },
         }
 
-    def clear(self, level: int | None = None):
+    def clear(self, level: int | None = None) -> None:
         """Clear cache.
 
         Args:

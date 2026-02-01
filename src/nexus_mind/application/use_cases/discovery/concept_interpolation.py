@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any, cast
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 @dataclass
@@ -68,7 +70,7 @@ def slerp(v0: np.ndarray, v1: np.ndarray, t: float) -> np.ndarray:
     # Interpolate
     result = v0 * np.cos(theta) + v2 * np.sin(theta)
 
-    return result
+    return cast(NDArray[np.float64], result)
 
 
 def lerp(v0: np.ndarray, v1: np.ndarray, t: float) -> np.ndarray:
@@ -86,7 +88,7 @@ def lerp(v0: np.ndarray, v1: np.ndarray, t: float) -> np.ndarray:
         Interpolated vector (normalized)
     """
     result = (1 - t) * v0 + t * v1
-    return result / np.linalg.norm(result)
+    return cast(NDArray[np.float64], result / np.linalg.norm(result))
 
 
 class ConceptInterpolator:
@@ -266,7 +268,7 @@ class ConceptInterpolator:
         else:
             raise ValueError(f"Unknown method: {method}")
 
-        return coords
+        return cast(NDArray[np.float64], coords)
 
 
 class MultiConceptBlend:
@@ -317,4 +319,4 @@ class MultiConceptBlend:
         result_emb = result_emb / np.linalg.norm(result_emb)
 
         # Search
-        return self.searcher(result_emb, top_k=top_k)
+        return cast(list[dict[Any, Any]], self.searcher(result_emb, top_k=top_k))

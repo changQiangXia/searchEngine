@@ -9,7 +9,7 @@ from __future__ import annotations
 import gc
 import threading
 import warnings
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -113,7 +113,8 @@ class GPUMemoryManager:
     """
 
     _instance: GPUMemoryManager | None = None
-    _lock = threading.Lock()
+    _lock: threading.Lock | threading.RLock = threading.Lock()
+    _initialized: bool
 
     def __new__(cls, *_args: Any, **_kwargs: Any) -> GPUMemoryManager:
         """Ensure singleton pattern with thread safety."""
@@ -157,7 +158,7 @@ class GPUMemoryManager:
 
         # Model pool: name -> (model, persistent, cpu_copy)
         self._model_pool: dict[str, tuple] = {}
-        self._lock = threading.RLock()
+        self._instance_lock: threading.Lock | threading.RLock = threading.RLock()
         self._initialized = True
 
         # Monitoring
@@ -168,7 +169,7 @@ class GPUMemoryManager:
     def _start_monitoring(self) -> None:
         """Start background memory monitoring thread."""
 
-        def monitor():
+        def monitor() -> None:
             while self.enable_monitoring:
                 pressure = self.check_pressure()
                 if pressure == MemoryPressureLevel.EMERGENCY:
@@ -239,7 +240,7 @@ class GPUMemoryManager:
 
         # Level 3: Offload non-persistent models
         if aggressive:
-            with self._lock:
+            with self._instance_lock:
                 offloaded = []
                 for name, (_model, persistent, _) in list(self._model_pool.items()):
                     if not persistent:
@@ -262,7 +263,7 @@ class GPUMemoryManager:
     def register_model(
         self,
         name: str,
-        model: ModelProtocol,
+        model: Any,
         persistent: bool = False,
     ) -> None:
         """Register a model for memory management.
@@ -272,7 +273,7 @@ class GPUMemoryManager:
             model: The model to manage
             persistent: If True, model won't be auto-offloaded
         """
-        with self._lock:
+        with self._instance_lock:
             # Store reference and CPU backup
             cpu_copy = None
             if hasattr(model, "state_dict"):
@@ -286,7 +287,7 @@ class GPUMemoryManager:
         Args:
             name: Model identifier to remove
         """
-        with self._lock:
+        with self._instance_lock:
             if name in self._model_pool:
                 del self._model_pool[name]
 
@@ -406,7 +407,7 @@ class GPUMemoryManager:
         Returns:
             The model if found, None otherwise
         """
-        with self._lock:
+        with self._instance_lock:
             if name in self._model_pool:
                 return self._model_pool[name][0]
             return None
@@ -417,7 +418,7 @@ class GPUMemoryManager:
         Returns:
             Dictionary mapping model names to their info
         """
-        with self._lock:
+        with self._instance_lock:
             return {
                 name: {
                     "persistent": persistent,
@@ -457,7 +458,7 @@ def get_memory_manager() -> GPUMemoryManager:
 def memory_safe_context(
     fallback_to_cpu: bool = True,
     aggressive_cleanup: bool = True,
-):
+) -> Iterator[GPUMemoryManager]:
     """Context manager for memory-safe operations.
 
     Automatically handles OOM errors and performs cleanup.

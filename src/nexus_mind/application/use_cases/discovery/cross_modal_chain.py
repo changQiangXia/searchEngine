@@ -332,7 +332,7 @@ class CrossModalChain:
 
         concepts = ["object", "scene", "person", "landscape", "building", "animal", "vehicle"]
 
-        best_score = -1
+        best_score = -1.0
         best_caption = "an image"
 
         for concept in concepts:

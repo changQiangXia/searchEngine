@@ -10,7 +10,7 @@ import asyncio
 import time
 from collections import deque
 from collections.abc import Callable, Generator, Iterator
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
 
@@ -95,7 +95,7 @@ class DynamicBatcher:
 
         return self.current_batch_size
 
-    def record_batch(self, batch_size: int, duration: float):
+    def record_batch(self, batch_size: int, duration: float) -> None:
         """Record batch performance."""
         self.batch_times.append(duration)
         self.batch_sizes.append(batch_size)
@@ -131,6 +131,7 @@ class AsyncProcessor:
         self.max_workers = max_workers
         self.use_processes = use_processes
 
+        self.executor: Executor
         if use_processes:
             self.executor = ProcessPoolExecutor(max_workers=max_workers)
         else:
@@ -189,7 +190,7 @@ class AsyncProcessor:
         chunks = [items[i : i + chunk_size] for i in range(0, len(items), chunk_size)]
 
         # Map phase
-        async def process_chunk(chunk):
+        async def process_chunk(chunk: list[Any]) -> list[Any]:
             return [map_fn(item) for item in chunk]
 
         chunk_results = await asyncio.gather(*[process_chunk(chunk) for chunk in chunks])
@@ -200,7 +201,7 @@ class AsyncProcessor:
         # Reduce phase
         return reduce_fn(flat_results)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Shutdown executor."""
         self.executor.shutdown(wait=True)
 
@@ -308,7 +309,7 @@ class PerformanceMonitor:
     Tracks throughput, latency, memory usage, etc.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize monitor."""
         self.metrics: dict[str, list[float]] = {
             "throughput": [],
@@ -318,7 +319,7 @@ class PerformanceMonitor:
         }
         self.start_times: dict[str, float] = {}
 
-    def start_timer(self, name: str):
+    def start_timer(self, name: str) -> None:
         """Start timing an operation."""
         self.start_times[name] = time.time()
 
@@ -333,12 +334,12 @@ class PerformanceMonitor:
 
         return duration
 
-    def record_throughput(self, items: int, duration: float):
+    def record_throughput(self, items: int, duration: float) -> None:
         """Record throughput."""
         throughput = items / duration if duration > 0 else 0
         self.metrics["throughput"].append(throughput)
 
-    def record_memory(self):
+    def record_memory(self) -> None:
         """Record current memory usage."""
         import psutil
 
@@ -366,7 +367,7 @@ class PerformanceMonitor:
 
         return stats
 
-    def print_report(self):
+    def print_report(self) -> None:
         """Print performance report."""
         stats = self.get_stats()
 
